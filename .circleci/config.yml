@@ -26,6 +26,8 @@ jobs:
     steps:
       - attach_workspace:
           at: .
+      - setup_remote_docker:  # ✅ Ensure Docker daemon is available (DinD)
+          docker_layer_caching: true
       - run:
           name: Start Container
           command: |
