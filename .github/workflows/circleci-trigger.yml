@@ -24,4 +24,4 @@ jobs:
                   "run_cypress_tests": true
                 }
               }' \
-          "https://circleci.com/api/v2/project/github/YOUR_ORG/YOUR_REPO/pipeline"
+          "https://circleci.com/api/v2/project/github/mu-majid/circleci-cypress-pipeline/pipeline"
