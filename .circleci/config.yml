@@ -18,12 +18,16 @@ jobs:
           root: .
           paths:
             - my-app.tar
+            - cypress.config.js  # Ensure Cypress config is available
 
   run-cypress:
-    machine: true  # Use full VM with Docker pre-installed
+    machine: true  # Use full VM with Docker & npm pre-installed
     steps:
       - attach_workspace:
           at: .
+      - run:
+          name: Verify Workspace Files
+          command: ls -la  # Debugging step to check files
       - run:
           name: Load Docker Image
           command: docker load -i my-app.tar
@@ -31,11 +35,17 @@ jobs:
           name: Start Docker Container
           command: docker run -d -p 3000:3000 --name my-app-container my-app:test
       - run:
+          name: Ensure Cypress Config Exists
+          command: |
+            if [ ! -f cypress.config.js ]; then
+              echo "module.exports = { e2e: { baseUrl: 'http://localhost:3000' } };" > cypress.config.js
+            fi
+      - run:
           name: Install Cypress
           command: npm install -g cypress
       - run:
           name: Run Cypress Tests
-          command: npx cypress run --config baseUrl=http://localhost:3000
+          command: npx cypress run
       - run:
           name: Stop and Remove Container
           command: |
