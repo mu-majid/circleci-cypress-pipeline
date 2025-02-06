@@ -11,20 +11,25 @@ jobs:
       - run:
           name: Build Docker Image
           command: docker build -t my-app:test .
+      - run:
+          name: Save Docker Image
+          command: docker save -o my-app.tar my-app:test
       - persist_to_workspace:
           root: .
           paths:
-            - "."
+            - my-app.tar
 
   run-cypress:
-    machine: true  # ✅ Switch to a full VM with Docker pre-installed
+    machine: true  # Use full VM with Docker pre-installed
     steps:
       - attach_workspace:
           at: .
       - run:
+          name: Load Docker Image
+          command: docker load -i my-app.tar
+      - run:
           name: Start Docker Container
-          command: |
-            docker run -d -p 3000:3000 --name my-app-container my-app:test
+          command: docker run -d -p 3000:3000 --name my-app-container my-app:test
       - run:
           name: Install Cypress
           command: npm install -g cypress
