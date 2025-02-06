@@ -1,0 +1,27 @@
+name: Trigger CircleCI Cypress Tests
+
+on:
+  pull_request:
+    branches:
+      - main
+      - develop
+
+jobs:
+  trigger-circleci:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Trigger CircleCI Pipeline
+        run: |
+          curl -X POST \
+          -u "${{ secrets.CIRCLECI_TOKEN }}:" \
+          -H "Content-Type: application/json" \
+          -d '{
+                "branch": "${{ github.head_ref }}",
+                "parameters": {
+                  "run_cypress_tests": true
+                }
+              }' \
+          "https://circleci.com/api/v2/project/github/YOUR_ORG/YOUR_REPO/pipeline"

@@ -1,0 +1,54 @@
+version: 2.1
+
+executors:
+  docker-executor:
+    docker:
+      - image: cimg/base:current
+
+jobs:
+  build-docker:
+    executor: docker-executor
+    steps:
+      - checkout
+      - setup_remote_docker:
+          version: 20.10.7
+          docker_layer_caching: true
+      - run:
+          name: Build Docker Image
+          command: |
+            docker build -t my-app:test .
+      - persist_to_workspace:
+          root: .
+          paths:
+            - "."
+
+  run-cypress:
+    executor: docker-executor
+    steps:
+      - attach_workspace:
+          at: .
+      - setup_remote_docker:
+          version: 20.10.7
+      - run:
+          name: Start Container
+          command: |
+            docker run -d -p 3000:3000 --name my-app-container my-app:test
+      - run:
+          name: Run Cypress Tests
+          command: |
+            npm install -g cypress
+            npx cypress run --config baseUrl=http://localhost:3000
+      - run:
+          name: Stop and Remove Container
+          command: |
+            docker stop my-app-container
+            docker rm my-app-container
+
+workflows:
+  version: 2
+  test:
+    jobs:
+      - build-docker
+      - run-cypress:
+          requires:
+            - build-docker
