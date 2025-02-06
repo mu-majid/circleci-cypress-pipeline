@@ -1,43 +1,36 @@
 version: 2.1
 
-executors:
-  docker-executor:
-    docker:
-      - image: cimg/base:current
-
 jobs:
   build-docker:
-    executor: docker-executor
+    docker:
+      - image: cimg/base:current
     steps:
       - checkout
       - setup_remote_docker:
           docker_layer_caching: true
       - run:
           name: Build Docker Image
-          command: |
-            docker build -t my-app:test .
+          command: docker build -t my-app:test .
       - persist_to_workspace:
           root: .
           paths:
             - "."
 
   run-cypress:
-    docker:
-      - image: cypress/included:12.0.0
+    machine: true  # ✅ Switch to a full VM with Docker pre-installed
     steps:
       - attach_workspace:
           at: .
-      - setup_remote_docker:  # ✅ Ensure Docker daemon is available (DinD)
-          docker_layer_caching: true
       - run:
-          name: Start Container
+          name: Start Docker Container
           command: |
             docker run -d -p 3000:3000 --name my-app-container my-app:test
       - run:
+          name: Install Cypress
+          command: npm install -g cypress
+      - run:
           name: Run Cypress Tests
-          command: |
-            npm install -g cypress
-            npx cypress run --config baseUrl=http://localhost:3000
+          command: npx cypress run --config baseUrl=http://localhost:3000
       - run:
           name: Stop and Remove Container
           command: |
