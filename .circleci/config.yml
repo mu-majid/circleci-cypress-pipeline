@@ -19,6 +19,7 @@ jobs:
           paths:
             - my-app.tar
             - cypress.config.js  # Ensure Cypress config is available
+            - cypress/  # Persist the Cypress folder
 
   run-cypress:
     machine: true  # Use full VM with Docker & npm pre-installed
@@ -40,6 +41,11 @@ jobs:
             if [ ! -f cypress.config.js ]; then
               echo "module.exports = { e2e: { baseUrl: 'http://localhost:3000' } };" > cypress.config.js
             fi
+      - run:
+          name: Ensure Cypress Support File Exists
+          command: |
+            mkdir -p cypress/support
+            echo "// Cypress support file" > cypress/support/e2e.js
       - run:
           name: Install Cypress
           command: npm install -g cypress
